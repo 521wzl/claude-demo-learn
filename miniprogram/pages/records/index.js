@@ -49,12 +49,17 @@ Page({
 
   onLoad() {
     this._initFilter()
+    this._initialized = false
     this._loadRecords(true)
   },
 
   onShow() {
-    // 从编辑页返回时刷新
-    this._loadRecords(true)
+    // 返回时静默刷新，不闪骨架屏
+    if (this._initialized) {
+      this._loadRecords(true, true) // silent = true
+    } else {
+      this._initialized = true
+    }
   },
 
   onPullDownRefresh() {
@@ -81,9 +86,15 @@ Page({
   },
 
   // ─── 加载数据 ─────────────────────────────────────
-  async _loadRecords(reset) {
+  async _loadRecords(reset, silent) {
     if (reset) {
-      this.setData({ page: 1, groupedRecords: [], loading: true, hasMore: true })
+      if (silent) {
+        // 静默刷新：保留当前数据，page 复位
+        this.setData({ page: 1, hasMore: true })
+      } else {
+        // 首次/下拉刷新：显示骨架屏
+        this.setData({ page: 1, groupedRecords: [], loading: true, hasMore: true })
+      }
     } else {
       this.setData({ loadingMore: true })
     }
@@ -196,6 +207,29 @@ Page({
   },
 
   // ─── 左滑删除 ─────────────────────────────────────
+  _touchStart(e) {
+    this._touchStartX = e.touches[0].clientX
+    this._touchStartY = e.touches[0].clientY
+  },
+
+  _touchMove(e) {
+    // 可选：实时跟踪滑动距离做动画
+  },
+
+  _touchEnd(e) {
+    if (!this._touchStartX) return
+    const deltaX = e.changedTouches[0].clientX - this._touchStartX
+    const deltaY = e.changedTouches[0].clientY - this._touchStartY
+    const targetId = e.currentTarget.dataset.swipeTarget
+    // 水平滑动超过 50px 且向左滑
+    if (Math.abs(deltaX) > 50 && Math.abs(deltaX) > Math.abs(deltaY)) {
+      this.setData({ swipeRecordId: deltaX < 0 ? targetId : null })
+    } else {
+      this.setData({ swipeRecordId: null })
+    }
+    this._touchStartX = null
+  },
+
   onSwipe(e) {
     const id = e.currentTarget.dataset.id
     if (e.detail.direction === 'left') {
@@ -218,7 +252,7 @@ Page({
           const result = await wx.cloud.callFunction({ name: 'deleteRecord', data: { id } })
           if (result.result && result.result.code === 0) {
             wx.showToast({ title: '已删除', icon: 'none' })
-            this._loadRecords(true)
+            this._loadRecords(true, true) // silent refresh, keep skeleton hidden
           } else {
             throw new Error(result.result.errMsg)
           }
