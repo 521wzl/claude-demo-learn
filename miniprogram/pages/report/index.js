@@ -1,9 +1,9 @@
 Page({
   data: {
-    isFullReport: false, // 是否满30天显示完整报告
+    isFullReport: false, // 满10条解锁完整报告
     progress: 0, // 数据收集进度
     recordCount: 0,
-    targetCount: 30,
+    targetCount: 10,
 
     // 当前月份数据
     currentMonth: '',
@@ -171,7 +171,15 @@ Page({
     // 获取上月数据进行对比
     const lastMonthData = this.getLastMonthData(monthRecords, year, month)
 
+    // 计算进度
+    const recordCount = monthRecords.length
+    const progress = Math.min(100, Math.round(recordCount / this.data.targetCount * 100))
+    const isFullReport = recordCount >= this.data.targetCount
+
     this.setData({
+      recordCount,
+      progress,
+      isFullReport,
       totalExpense,
       totalIncome,
       recordDays,

@@ -12,9 +12,12 @@ exports.main = async (event, context) => {
     if (type) query.type = type
     if (startDate || endDate) {
       query.timestamp = {}
-      if (startDate) query.timestamp.$gte = new Date(startDate).getTime()
+      if (startDate) {
+        const d = new Date(startDate)
+        d.setHours(0, 0, 0, 0)
+        query.timestamp.$gte = d.getTime()
+      }
       if (endDate) {
-        // 取当月最后一天 23:59:59.999
         const d = new Date(endDate)
         d.setHours(23, 59, 59, 999)
         query.timestamp.$lte = d.getTime()
