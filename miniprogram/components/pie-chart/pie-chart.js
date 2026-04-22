@@ -69,7 +69,32 @@ Component({
       ctx.draw()
     },
 
-    onTap() {
+    onTap(e) {
+      const { x, y } = e.detail || e.touches?.[0] || {}
+      if (x === undefined) {
+        this.triggerEvent('tap')
+        return
+      }
+      const width = 300, height = 300
+      const centerX = width / 2, centerY = height / 2
+      const dx = x - centerX, dy = y - centerY
+      let angle = Math.atan2(dy, dx) + Math.PI / 2
+      if (angle < 0) angle += 2 * Math.PI
+
+      const data = this.data.data
+      const total = data.reduce((sum, item) => sum + item.amount, 0)
+      if (total === 0) return
+
+      let startAngle = 0
+      for (let i = 0; i < data.length; i++) {
+        const sliceAngle = (data[i].amount / total) * 2 * Math.PI
+        const endAngle = startAngle + sliceAngle
+        if (angle >= startAngle && angle < endAngle) {
+          this.triggerEvent('tap', { index: i, category: data[i].category })
+          return
+        }
+        startAngle = endAngle
+      }
       this.triggerEvent('tap')
     }
   }
