@@ -37,7 +37,6 @@
       <canvas canvas-id="pieCanvas" id="pieCanvas"></canvas>
       <view class="pie-center">
         <text class="pie-center-value">¥{{totalExpense}}</text>
-        <text class="pie-center-label">支出</text>
       </view>
     </view>
     <view class="pie-legend">
