@@ -1,0 +1,39 @@
+# 依赖与构建产物
+node_modules/
+dist/
+build/
+
+# 环境配置（包含敏感信息）
+.env
+.env.local
+.env.*.local
+
+# 锁定文件（避免跨平台依赖树冲突）
+package-lock.json
+yarn.lock
+
+# Claude 配置（个人级）
+.claude/
+.claude.json
+.claude.json.*
+
+# 云开发本地文件
+cloudbaserc.json
+
+# 微信小程序开发者工具
+*.wxvp
+*.磕
+
+# 临时文件
+*.tmp
+*.log
+.DS_Store
+Thumbs.db
+
+# 测试覆盖率
+coverage/
+
+# 其他
+.swp
+*.swo
+*~
