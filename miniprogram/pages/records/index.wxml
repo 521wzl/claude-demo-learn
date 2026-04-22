@@ -1,0 +1,135 @@
+<!-- pages/records/index.wxml — 记录列表 -->
+<view class="page">
+
+  <!-- ─── 自定义导航 ─── -->
+  <view class="nav-bar">
+    <view class="nav-bar__title">收支记录</view>
+    <view class="nav-bar__search" bindtap="onSearchTap">🔍</view>
+  </view>
+
+  <!-- ─── 月份切换 + 筛选 ─── -->
+  <view class="card month-bar">
+    <view class="month-bar__arrow" bindtap="onPrevMonth">‹</view>
+    <view class="month-bar__label">{{currentYear}}年{{currentMonth}}月</view>
+    <view class="month-bar__arrow" bindtap="onNextMonth">›</view>
+    <view class="month-bar__spacer"></view>
+    <view class="filter-btn {{filterActive ? 'filter-btn--active' : ''}}" bindtap="onFilterOpen">
+      筛选{{filterActive ? ' ●' : ''}}
+    </view>
+  </view>
+
+  <!-- ─── 骨架屏 ─── -->
+  <view wx:if="{{loading}}" class="skeleton-wrap">
+    <view wx:for="{{skeletonRows}}" wx:key="*this" class="skeleton-group">
+      <view class="skeleton skeleton-date-label"></view>
+      <view class="card skeleton-card">
+        <view class="skeleton-row">
+          <view class="skeleton skeleton-emoji-sm"></view>
+          <view class="skeleton-text-group">
+            <view class="skeleton skeleton-text-md"></view>
+            <view class="skeleton skeleton-text-xs"></view>
+          </view>
+          <view class="skeleton skeleton-amount-sm"></view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- ─── 记录分组列表 ─── -->
+  <view wx:elif="{{groupedRecords.length > 0}}">
+    <view wx:for="{{groupedRecords}}" wx:key="dateStr" class="date-group">
+      <view class="date-label text-secondary">{{item.dateLabel}}</view>
+      <view class="card records-card">
+        <view wx:for="{{item.records}}" wx:key="_id" wx:for-item="record"
+              class="swipe-record-wrap">
+          <!-- 记录项 -->
+          <view class="record-item {{swipeRecordId === record._id ? 'record-item--swiped' : ''}}"
+                bindtap="onRecordTap"
+                data-id="{{record._id}}"
+                bindtouchstart="_touchStart"
+                bindtouchmove="_touchMove"
+                bindtouchend="_touchEnd"
+                data-swipe-target="{{record._id}}">
+            <view class="record-item__emoji">{{record.emoji}}</view>
+            <view class="record-item__info">
+              <view class="record-item__category" style="color:{{record.color}}">{{record.category}}</view>
+              <view class="record-item__remark text-secondary">{{record.remark || record.category}}</view>
+            </view>
+            <view class="record-item__actions">
+              <view class="record-item__amount amount-{{record.type === 'expense' ? 'expense' : 'income'}}">
+                {{record.displayAmount}}
+              </view>
+              <text class="edit-btn" catchtap="onEditRecord" data-id="{{record._id}}">✏️</text>
+            </view>
+          </view>
+          <!-- 删除按钮 -->
+          <view class="delete-btn {{swipeRecordId === record._id ? 'delete-btn--show' : ''}}"
+                bindtap="onDeleteRecord" data-id="{{record._id}}">
+            删除
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 加载更多 -->
+    <view class="load-more">
+      <view wx:if="{{loadingMore}}" class="load-more__loading">
+        <view class="loading-spinner"></view>
+        <text>加载中...</text>
+      </view>
+      <text wx:elif="{{!hasMore}}" class="load-more__done text-secondary">── 已加载全部 ──</text>
+    </view>
+  </view>
+
+  <!-- ─── 空状态 ─── -->
+  <view wx:elif="{{!loading}}" class="empty-state">
+    <view class="empty-state__icon">📋</view>
+    <view class="empty-state__title">还没有记录</view>
+    <view class="empty-state__desc">点击首页「记账」开始记录吧</view>
+  </view>
+
+</view>
+
+<!-- ─── 筛选面板 ─── -->
+<view wx:if="{{showFilter}}" class="overlay" bindtap="onFilterClose" style="z-index:100"></view>
+<view class="filter-sheet {{showFilter ? 'show' : ''}}">
+  <view class="filter-sheet__header">
+    <text class="filter-sheet__title">选择筛选条件</text>
+    <text class="filter-sheet__reset text-secondary" bindtap="onFilterReset">重置全部</text>
+  </view>
+
+  <!-- 类目多选 -->
+  <view class="filter-section-title text-secondary">类目</view>
+  <view class="filter-cats">
+    <view wx:for="{{allCategories}}" wx:key="name"
+          class="filter-tag {{item.selected ? 'filter-tag--selected' : ''}}"
+          style="{{item.selected ? '' : ''}}"
+          bindtap="onFilterCategoryToggle" data-name="{{item.name}}">
+      {{item.emoji}} {{item.name}}
+    </view>
+  </view>
+
+  <!-- 类型单选 -->
+  <view class="filter-section-title text-secondary">类型</view>
+  <view class="filter-types">
+    <view wx:for="{{[{label:'全部',value:'all'},{label:'仅支出',value:'expense'},{label:'仅收入',value:'income'}]}}" wx:key="value"
+          class="filter-tag {{filterDraft.type === item.value ? 'filter-tag--selected' : ''}}"
+          bindtap="onFilterTypeSelect" data-type="{{item.value}}">
+      {{item.label}}
+    </view>
+  </view>
+
+  <!-- 金额范围 -->
+  <view class="filter-section-title text-secondary">金额范围</view>
+  <view class="filter-amount-range">
+    <input class="filter-amount-input" type="digit"
+           placeholder="最低" value="{{filterDraft.minAmount}}"
+           bindinput="onFilterMinInput" />
+    <text class="filter-amount-sep">～</text>
+    <input class="filter-amount-input" type="digit"
+           placeholder="最高" value="{{filterDraft.maxAmount}}"
+           bindinput="onFilterMaxInput" />
+  </view>
+
+  <button class="btn-primary" bindtap="onFilterConfirm">确 定</button>
+</view>

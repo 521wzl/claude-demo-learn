@@ -9,6 +9,12 @@ const CATEGORY_MAP = {
   医疗: { emoji: '💊', color: '#FF7F50' },
   教育: { emoji: '📚', color: '#4A90D9' },
   通讯: { emoji: '📱', color: '#9B59B6' },
+  投资理财: { emoji: '💹', color: '#27AE60' },
+  生活用品: { emoji: '🎁', color: '#8E44AD' },
+  水费: { emoji: '💧', color: '#3498DB' },
+  电费: { emoji: '🔌', color: '#F39C12' },
+  燃气费: { emoji: '🔥', color: '#E74C3C' },
+  物业费: { emoji: '🏢', color: '#95A5A6' },
   其他: { emoji: '📦', color: '#6B6B8D' },
   收入: { emoji: '💰', color: '#2ECC71' }
 }
@@ -333,6 +339,11 @@ Page({
 
   // ─── 导航 ────────────────────────────────────────
   onRecordTap(e) {
+    const id = e.currentTarget.dataset.id
+    wx.navigateTo({ url: `/pages/edit/index?id=${id}` })
+  },
+
+  onEditRecord(e) {
     const id = e.currentTarget.dataset.id
     wx.navigateTo({ url: `/pages/edit/index?id=${id}` })
   },
