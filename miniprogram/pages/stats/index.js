@@ -1,6 +1,7 @@
 // miniprogram/pages/stats/index.js - 统计报表页
 const { formatAmount } = require('../../utils/format.js')
 const { categories } = require('../../utils/category.js')
+const { add, subtract, multiply, divide } = require('../../utils/amount.js')
 
 Page({
   data: {
@@ -77,15 +78,15 @@ Page({
 
       records.forEach(r => {
         if (r.type === 'expense') {
-          totalExpense += r.amount
+          totalExpense = add(totalExpense, r.amount)
           const cat = r.category || '其他'
-          categoryBreakdown[cat] = (categoryBreakdown[cat] || 0) + r.amount
+          categoryBreakdown[cat] = add(categoryBreakdown[cat] || 0, r.amount)
         } else if (r.type === 'income') {
-          totalIncome += r.amount
+          totalIncome = add(totalIncome, r.amount)
         }
       })
 
-      const netAmount = totalIncome - totalExpense
+      const netAmount = subtract(totalIncome, totalExpense)
 
       const lineData = this._buildLineData(records)
 
@@ -106,16 +107,33 @@ Page({
   },
 
   _buildCategoryData(categoryBreakdown, totalExpense) {
-    const categoryData = Object.entries(categoryBreakdown).map(([category, amount]) => ({
-      category,
-      emoji: categories[category]?.emoji || '📦',
-      color: categories[category]?.color || '#6B6B8D',
-      amountRaw: amount,
-      amount: formatAmount(amount),
-      percent: totalExpense > 0 ? Math.round((amount / totalExpense) * 100) : 0
-    }))
+    const categoryData = Object.entries(categoryBreakdown).map(([category, amount]) => {
+      const exactPercent = totalExpense > 0 ? (amount / totalExpense) * 100 : 0
+      return {
+        category,
+        emoji: categories[category]?.emoji || '📦',
+        color: categories[category]?.color || '#6B6B8D',
+        amountRaw: amount,
+        amount: formatAmount(amount),
+        exactPercent,
+        percent: Math.round(exactPercent)
+      }
+    })
+
+    // 最大余数法：确保百分比总和为100%
+    const roundedSum = categoryData.reduce((sum, item) => sum + item.percent, 0)
+    if (roundedSum !== 100 && categoryData.length > 0) {
+      const diff = 100 - roundedSum
+      categoryData.sort((a, b) => {
+        const remA = a.exactPercent - Math.floor(a.exactPercent)
+        const remB = b.exactPercent - Math.floor(b.exactPercent)
+        return remB - remA
+      })
+      categoryData[0].percent += diff
+    }
+
     categoryData.sort((a, b) => b.percent - a.percent)
-    return categoryData
+    return categoryData.map(({ exactPercent, ...rest }) => rest)
   },
 
   _buildLineData(records) {
@@ -244,7 +262,12 @@ Page({
   },
 
   onPieTap(e) {
-    // 饼图点击
+    const { category } = e.detail || {}
+    if (category) {
+      wx.navigateTo({
+        url: `/pages/records/index?category=${encodeURIComponent(category)}`
+      })
+    }
   },
 
   onLegendTap(e) {
