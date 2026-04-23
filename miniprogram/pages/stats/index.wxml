@@ -33,7 +33,7 @@
       </view>
       <view class="detail-right">
         <text class="detail-amount">¥{{item.amount}}</text>
-        <text class="detail-percent">{{item.percent}}%</text>
+        <text class="detail-percent">{{item.displayPercent}}%</text>
         <view class="detail-bar" style="width:{{item.percent}}%;background:{{item.color}}"></view>
       </view>
     </view>

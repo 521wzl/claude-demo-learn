@@ -119,7 +119,11 @@ Page({
     // 按金额降序排列
     categoryData.sort((a, b) => b.amountRaw - a.amountRaw)
 
-    return categoryData.map(({ exactPercent, ...rest }) => rest)
+    // 构建显示用百分比：小占比显示<1，非零占比至少显示1%
+    return categoryData.map(({ exactPercent, ...rest }) => ({
+      ...rest,
+      displayPercent: exactPercent >= 1 ? Math.round(exactPercent) : (exactPercent > 0 ? '<1' : 0)
+    }))
   },
 
   onCategoryTap(e) {
