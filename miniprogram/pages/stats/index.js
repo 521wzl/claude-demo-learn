@@ -5,9 +5,9 @@ const { add, subtract } = require('../../utils/amount.js')
 
 Page({
   data: {
-    totalExpense: '0.00',
-    totalIncome: '0.00',
-    netAmount: '0.00',
+    totalExpense: '0.0',
+    totalIncome: '0.0',
+    netAmount: '0.0',
     overBudget: false,
     fullList: []
   },
@@ -52,9 +52,9 @@ Page({
 
       if (records.length === 0) {
         this.setData({
-          totalExpense: '0.00',
-          totalIncome: '0.00',
-          netAmount: '0.00',
+          totalExpense: '0.0',
+          totalIncome: '0.0',
+          netAmount: '0.0',
           fullList: [],
           overBudget: false
         })

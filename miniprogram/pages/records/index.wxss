@@ -79,7 +79,7 @@
   display: block;
 }
 
-.record-items {
+.records-card {
   background: #FFFFFF;
   border-radius: 24rpx;
   overflow: hidden;
@@ -97,50 +97,50 @@
   border-bottom: none;
 }
 
-.record-left {
-  display: flex;
-  align-items: center;
-  flex: 1;
-}
-
-.record-emoji {
+.record-item__emoji {
   font-size: 40rpx;
   margin-right: 20rpx;
+  flex-shrink: 0;
 }
 
-.record-info {
+.record-item__info {
   display: flex;
   flex-direction: column;
+  flex: 1;
+  min-width: 0;
 }
 
-.record-category {
+.record-item__category {
   font-size: 28rpx;
-  color: #1A1A2E;
   font-weight: 500;
 }
 
-.record-remark {
+.record-item__remark {
   font-size: 24rpx;
   color: #6B6B8D;
   margin-top: 6rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.record-right {
+.record-item__actions {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
+  flex-shrink: 0;
 }
 
-.record-amount {
+.record-item__amount {
   font-size: 30rpx;
   font-weight: bold;
 }
 
-.record-amount.expense {
+.record-item__amount.expense {
   color: #FF6B6B;
 }
 
-.record-amount.income {
+.record-item__amount.income {
   color: #4ECDC4;
 }
 

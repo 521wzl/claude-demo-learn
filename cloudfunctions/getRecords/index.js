@@ -13,19 +13,18 @@ exports.main = async (event, context) => {
     if (startDate || endDate) {
       query.timestamp = {}
       if (startDate) {
-        const d = new Date(startDate)
-        d.setHours(0, 0, 0, 0)
+        // 明确在本地时区设置 00:00:00.000
+        const [y, m, day] = startDate.split('-').map(Number)
+        const d = new Date(y, m - 1, day, 0, 0, 0, 0)
         query.timestamp.$gte = d.getTime()
       }
       if (endDate) {
-        const d = new Date(endDate)
-        d.setHours(23, 59, 59, 999)
+        // 明确在本地时区设置 23:59:59.999
+        const [y, m, day] = endDate.split('-').map(Number)
+        const d = new Date(y, m - 1, day, 23, 59, 59, 999)
         query.timestamp.$lte = d.getTime()
       }
     }
-
-    const countResult = await db.collection('records').where(query).count()
-    const total = countResult.total
 
     const listRes = await db.collection('records')
       .where(query)
@@ -38,8 +37,8 @@ exports.main = async (event, context) => {
       code: 0,
       data: {
         list: listRes.data,
-        total,
-        hasMore: page * pageSize < total
+        total: listRes.data.length,
+        hasMore: listRes.data.length === pageSize
       }
     }
   } catch (err) {
