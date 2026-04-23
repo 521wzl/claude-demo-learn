@@ -320,6 +320,22 @@ Page({
       收入: ['工资', '奖金', '收入', '到账', '红包', '退款', '回收', '稿费', '劳务', '介绍费', '佣金', '外快', '理财收益', '理赔', '报销', '转账', '收款']
     }
 
+    // === 0. 买卖方向优先判断 ===
+    const SELL_WORDS = ['卖', '卖出', '赎回', '兑现', '变现', '套现', '减持',
+      '理财赎回', '基金赎回', '股票赎回', '理财收益', '基金收益', '股票收益',
+      '股息', '红利', '分红', '利息', '金收益', '股息红利', '到期', '回款']
+    const BUY_WORDS = ['买', '购买', '申购', '买入', '充值',
+      '买股', '买理财', '买黄金', '买基金', '买金条', '炒股']
+
+    const hasSell = SELL_WORDS.some(w => text.includes(w))
+    const hasBuy = BUY_WORDS.some(w => text.includes(w))
+
+    // 投资理财类目的买卖判断（优先于普通关键词匹配）
+    if (['股票', '基金', '理财', '黄金'].some(w => text.includes(w))) {
+      if (hasSell) return { category: '投资理财', type: 'income', amount, remark: text }
+      if (hasBuy) return { category: '投资理财', type: 'expense', amount, remark: text }
+    }
+
     for (const [cat, words] of Object.entries(keywords)) {
       if (words.some(w => text.includes(w))) {
         return {
