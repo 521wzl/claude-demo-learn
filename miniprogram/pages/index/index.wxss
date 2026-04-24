@@ -73,7 +73,7 @@
   display: flex;
   justify-content: center;
   align-items: baseline;
-  gap: 8rpx;
+  gap: 16rpx;
   padding-top: 8rpx;
   border-top: 1rpx solid #F0F0F0;
 }
@@ -81,7 +81,7 @@
 .budget-card__balance-label { font-size: 22rpx; }
 
 .budget-card__balance {
-  font-size: 42rpx;
+  font-size: 36rpx;
   font-weight: 700;
 }
 
