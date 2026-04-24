@@ -93,13 +93,26 @@ Page({
     const app = getApp()
     this.setData({ showGuide: app.globalData.showGuide || false })
     this._initialized = false
-    this._loadBudgetInfo()
-    this._loadRecentRecords()
+
+    // 缓存优先：先显示上次数据
+    const cachedBudget = wx.getStorageSync('cache_budgetInfo')
+    const cachedRecords = wx.getStorageSync('cache_recentRecords')
+    if (cachedBudget) this.setData({ budgetInfo: cachedBudget })
+    if (cachedRecords) this.setData({ recentRecords: cachedRecords })
+
+    // 后台静默刷新
+    this._loadBudgetInfo(true)
+    this._loadRecentRecords(true)
   },
 
   onShow() {
     // 返回时静默刷新，不闪骨架屏
     if (this._initialized) {
+      // 缓存优先：先显示上次数据
+      const cachedBudget = wx.getStorageSync('cache_budgetInfo')
+      const cachedRecords = wx.getStorageSync('cache_recentRecords')
+      if (cachedBudget) this.setData({ budgetInfo: cachedBudget })
+      if (cachedRecords) this.setData({ recentRecords: cachedRecords })
       this._loadBudgetInfo(true)
       this._loadRecentRecords(true)
     } else {
@@ -171,11 +184,9 @@ Page({
         }
       }
 
-      this.setData({
-        budgetStatus,
-        warningText,
-        budgetInfo: { expense, income, balance, budget: totalBudget, percent }
-      })
+      const budgetInfo = { expense, income, balance, budget: totalBudget, percent }
+      this.setData({ budgetStatus, warningText, budgetInfo })
+      wx.setStorageSync('cache_budgetInfo', budgetInfo)
     } catch (err) {
       console.error('_loadBudgetInfo 失败', err)
     }
@@ -192,10 +203,9 @@ Page({
         data: { page: 1, pageSize: 10 }
       })
       const list = (res.result || {}).data?.list || []
-      this.setData({
-        recentRecords: list.map(r => this._formatRecord(r)),
-        recentLoading: false
-      })
+      const recentRecords = list.map(r => this._formatRecord(r))
+      this.setData({ recentRecords, recentLoading: false })
+      wx.setStorageSync('cache_recentRecords', recentRecords)
     } catch (err) {
       console.error('_loadRecentRecords 失败', err)
       this.setData({ recentLoading: false })

@@ -30,7 +30,7 @@ Page({
 
     // 列表
     groupedRecords: [],   // [{ dateLabel, records: [...] }]
-    loading: true,        // 骨架屏
+    loading: false,
     loadingMore: false,
     hasMore: true,
     page: 1,
@@ -56,12 +56,18 @@ Page({
   onLoad() {
     this._initFilter()
     this._initialized = false
-    this._loadRecords(true)
+    // 缓存优先：先显示上次数据
+    const cached = wx.getStorageSync('cache_groupedRecords')
+    if (cached) this.setData({ groupedRecords: cached, loading: false })
+    this._loadRecords(true, true)
   },
 
   onShow() {
     // 返回时静默刷新，不闪骨架屏
     if (this._initialized) {
+      // 缓存优先：先显示上次数据
+      const cached = wx.getStorageSync('cache_groupedRecords')
+      if (cached) this.setData({ groupedRecords: cached, loading: false })
       this._loadRecords(true, true) // silent = true
     } else {
       this._initialized = true
@@ -141,6 +147,7 @@ Page({
         hasMore,
         page: reset ? 2 : this.data.page + 1
       })
+      wx.setStorageSync('cache_groupedRecords', grouped)
     } catch (err) {
       console.error('_loadRecords 失败', err)
       this.setData({ loading: false, loadingMore: false })

@@ -33,10 +33,16 @@ Page({
   },
 
   onLoad() {
+    // 缓存优先：先显示上次数据
+    const cached = wx.getStorageSync('cache_report')
+    if (cached) this.setData(cached)
     this.loadReportData()
   },
 
   onShow() {
+    // 缓存优先：先显示上次数据
+    const cached = wx.getStorageSync('cache_report')
+    if (cached) this.setData(cached)
     this.loadReportData()
   },
 
@@ -119,7 +125,7 @@ Page({
       const incomeChange = lastMonthData.income > 0
         ? Math.round(divide(multiply(subtract(totalIncome, lastMonthData.income), 100), lastMonthData.income)) : 0
 
-      this.setData({
+      const reportData = {
         totalExpense: parseFloat(totalExpense.toFixed(2)),
         totalIncome: parseFloat(totalIncome.toFixed(2)),
         netBalance: parseFloat(netBalance.toFixed(2)),
@@ -134,7 +140,9 @@ Page({
         insights,
         expenseChange,
         incomeChange
-      })
+      }
+      this.setData(reportData)
+      wx.setStorageSync('cache_report', reportData)
     } catch (err) {
       console.error('[DEBUG] getRecordsAndCalc error:', err)
       this.setData({ recordCount: 0, progress: 0, totalExpense: 0, totalIncome: 0 })

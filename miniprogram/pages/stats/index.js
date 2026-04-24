@@ -14,11 +14,17 @@ Page({
 
   onLoad() {
     this._initialized = false
+    // 缓存优先：先显示上次数据
+    const cached = wx.getStorageSync('cache_stats')
+    if (cached) this.setData(cached)
     this.loadData()
   },
 
   onShow() {
     if (this._initialized) {
+      // 缓存优先：先显示上次数据
+      const cached = wx.getStorageSync('cache_stats')
+      if (cached) this.setData(cached)
       this.loadData(true)
     } else {
       this._initialized = true
@@ -78,13 +84,15 @@ Page({
 
       const netAmount = subtract(totalIncome, totalExpense)
 
-      this.setData({
+      const statsData = {
         totalExpense: formatAmount(totalExpense),
         totalIncome: formatAmount(totalIncome),
         netAmount: formatAmount(netAmount),
         fullList: this._buildCategoryData(categoryBreakdown, totalExpense),
         overBudget: false
-      })
+      }
+      this.setData(statsData)
+      wx.setStorageSync('cache_stats', statsData)
     } catch (err) {
       console.error('加载数据失败', err)
     }
