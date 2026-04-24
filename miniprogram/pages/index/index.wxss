@@ -81,7 +81,7 @@
 .budget-card__balance-label { font-size: 22rpx; }
 
 .budget-card__balance {
-  font-size: 36rpx;
+  font-size: 30rpx;
   font-weight: 700;
 }
 
