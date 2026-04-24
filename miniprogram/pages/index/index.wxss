@@ -71,8 +71,9 @@
 
 .budget-card__balance-row {
   display: flex;
+  justify-content: center;
   align-items: baseline;
-  gap: 12rpx;
+  gap: 8rpx;
   padding-top: 8rpx;
   border-top: 1rpx solid #F0F0F0;
 }
@@ -82,8 +83,6 @@
 .budget-card__balance {
   font-size: 42rpx;
   font-weight: 700;
-  flex: 1;
-  text-align: center;
 }
 
 /* 进度条 */
