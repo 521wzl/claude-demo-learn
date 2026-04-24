@@ -161,7 +161,15 @@
 .ai-result__amount { font-size: 36rpx; font-weight: 700; margin-left: auto; }
 .ai-result__modify { font-size: 24rpx; }
 
-.confirm-btn { margin-top: 4rpx; }
+.confirm-btn {
+  width: 100%;
+  margin-top: 4rpx;
+  text-align: center;
+  line-height: 1;
+  padding: 28rpx 0;
+  height: auto;
+  box-sizing: border-box;
+}
 
 /* ─── 快捷类目 ─── */
 .section-title {
