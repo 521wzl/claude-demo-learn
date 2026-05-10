@@ -2,9 +2,11 @@
 <view class="page">
 
   <!-- ─── 自定义导航 ─── -->
-  <view class="nav-bar">
-    <view class="nav-bar__title">收支记录</view>
-    <view class="nav-bar__search" bindtap="onSearchTap">🔍</view>
+  <view class="navbar">
+    <view class="nav-title">收支记录</view>
+    <view class="nav-right">
+      <text class="search-icon" bindtap="onSearchTap">🔍</text>
+    </view>
   </view>
 
   <!-- ─── 月份切换 + 筛选 ─── -->

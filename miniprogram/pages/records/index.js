@@ -50,7 +50,10 @@ Page({
     swipeRecordId: null,  // 当前左滑记录ID
 
     // 骨架屏条数
-    skeletonRows: [1, 2, 3, 4, 5]
+    skeletonRows: [1, 2, 3, 4, 5],
+
+    // 筛选（必须在 data 中声明，否则 wxml 渲染时为 undefined）
+    allCategories: []
   },
 
   onLoad() {

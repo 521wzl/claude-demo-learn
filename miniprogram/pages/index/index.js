@@ -86,7 +86,11 @@ Page({
     inputAmount: '',
 
     // 新手引导
-    showGuide: false
+    showGuide: false,
+
+    // 餐饮时间确认弹窗
+    showMealTimePicker: false,
+    pendingResult: null
   },
 
   onLoad() {
@@ -262,13 +266,24 @@ Page({
       // 本地简单规则识别（减少云函数调用）
       const localResult = this._localClassify(text)
       if (localResult) {
+        // 吃饭等模糊词需要确认是早餐/午餐/晚餐
+        if (localResult.needMealTimeConfirm) {
+          this._showMealTimeConfirm(localResult)
+          return
+        }
         this._showAiResult(localResult)
         return
       }
       // 本地识别失败时调用云函数
       const res = await wx.cloud.callFunction({ name: 'classifyAI', data: { text } })
       if (res.result && res.result.code === 0) {
-        this._showAiResult(res.result.data)
+        const data = res.result.data
+        // 云函数也可能返回模糊结果，同样需要确认
+        if (data.needMealTimeConfirm) {
+          this._showMealTimeConfirm(data)
+          return
+        }
+        this._showAiResult(data)
       } else {
         this.setData({ inputState: 'error' })
       }
@@ -278,14 +293,74 @@ Page({
     }
   },
 
+  // ─── 模糊餐饮词确认 ───────────────────────────────
+  _showMealTimeConfirm(result) {
+    this.setData({
+      inputState: 'result',
+      showMealTimePicker: true,
+      pendingResult: result  // 待确认的结果
+    })
+  },
+
+  onMealTimeSelect(e) {
+    const meal = e.currentTarget.dataset.meal
+    const mealMap = { breakfast: '早餐', lunch: '午餐', dinner: '晚餐' }
+    const emojiMap = { breakfast: '🍳', lunch: '🍱', dinner: '🍲' }
+    const colorMap = { breakfast: '#FF6B6B', lunch: '#FF9F43', dinner: '#E74C3C' }
+
+    const category = mealMap[meal]
+    const pending = this.data.pendingResult || {}
+
+    // 更新结果
+    const finalResult = {
+      ...pending,
+      category,
+      emoji: emojiMap[meal],
+      color: colorMap[meal],
+      type: 'expense'
+    }
+
+    this.setData({
+      showMealTimePicker: false,
+      aiResult: {
+        ...finalResult,
+        displayAmount: (finalResult.amount != null) ? finalResult.amount.toFixed(2) : '0.00'
+      },
+      pendingResult: null
+    })
+  },
+
+  onMealTimeCancel() {
+    this.setData({
+      showMealTimePicker: false,
+      pendingResult: null,
+      inputState: 'idle'
+    })
+  },
+
   _localClassify(text) {
     // 简单本地规则：匹配金额 + 常见关键词
     const amountMatch = text.match(/(\d+(?:\.\d+)?)\s*[元块圆]?/)
     if (!amountMatch) return null
 
     const amount = parseFloat(amountMatch[1])
+
+    // === 模糊餐饮词优先检测 ===
+    const ambiguousMealWords = ['吃饭', '用餐', '进餐', '就餐', '用餐费', '餐费']
+    const hasAmbiguousMeal = ambiguousMealWords.some(w => text.includes(w))
+
+    // 具体早/午/晚餐关键词
+    const hasBreakfast = ['早餐', '早点', '早饭店', '早饭', '早午饭'].some(w => text.includes(w))
+    const hasLunch = ['午餐', '午饭', '中饭'].some(w => text.includes(w))
+    const hasDinner = ['晚餐', '晚饭'].some(w => text.includes(w))
+
+    // 如果只有模糊词没有具体分类，需要弹窗确认
+    if (hasAmbiguousMeal && !hasBreakfast && !hasLunch && !hasDinner) {
+      return { category: '其他', type: 'expense', amount, remark: text, needMealTimeConfirm: true }
+    }
+
     const keywords = {
-      早餐: ['早餐', '早点', '早饭店'],
+      早餐: ['早餐', '早点', '早饭店', '早饭', '早午饭'],
       午餐: ['午餐', '午饭', '中饭'],
       晚餐: ['晚餐', '晚饭'],
       夜宵: ['夜宵', '宵夜'],
@@ -294,16 +369,16 @@ Page({
       肉类: ['猪肉', '牛肉', '羊肉', '鸡肉', '肉类', '熟食'],
       海鲜: ['鱼', '虾', '蟹', '海鲜', '贝类', '海带'],
       粮油调味品: ['油', '盐', '酱', '醋', '调料', '调味品', '酱油', '料酒'],
-      咖啡茶饮: ['咖啡', '奶茶', '茶饮', '果汁', '水果茶', '喜茶', '奈雪'],
+      咖啡茶饮: ['咖啡', '奶茶', '茶饮', '果汁', '水果茶', '喜茶', '奈雪', '饮料'],
       烟酒茶叶: ['烟', '香烟', '酒', '白酒', '啤酒', '红酒', '茶叶', '茶具'],
-      日常交通: ['公交', '地铁', '出租', '打车', '滴滴', '日常出行'],
+      日常交通: ['公交', '地铁', '出租', '打车', '滴滴', '日常出行', '出行', '坐车'],
       远行交通: ['高铁', '火车', '飞机', '动车', '长途汽车'],
       养车: ['充电', '加油', '保养', '保险', '停车', '维修', '年检', '洗车', '违章'],
       电器数码: ['手机', '电脑', '相机', '家电', '数码', '平板', '笔记本'],
-      春装: ['春装', '春季衣服', '外套', '风衣', '毛衣'],
-      夏装: ['夏装', '夏季衣服', '短袖', '裙子', 'T恤'],
-      秋装: ['秋装', '秋季衣服', '长袖', '卫衣', '外套'],
-      冬装: ['冬装', '冬季衣服', '羽绒服', '大衣', '棉衣'],
+      春装: ['春装', '春季衣服', '外套', '风衣', '毛衣', '春衣'],
+      夏装: ['夏装', '夏季衣服', '短袖', '裙子', 'T恤', '夏衣'],
+      秋装: ['秋装', '秋季衣服', '长袖', '卫衣', '外套', '秋衣'],
+      冬装: ['冬装', '冬季衣服', '羽绒服', '大衣', '棉衣', '冬衣'],
       美妆: ['化妆品', '护肤', '香水', '美妆', '美容', '口红', '粉底'],
       医美: ['医美', '整形', '整容', '美白', '玻尿酸', '瘦脸针', '水光针'],
       美发: ['理发', '剪发', '染发', '烫发', '造型', '美发', '洗头', '吹发', 'Tony'],

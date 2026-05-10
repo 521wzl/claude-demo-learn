@@ -281,6 +281,75 @@
   padding: 16rpx;
 }
 
+/* ─── 餐饮时间选择弹窗 ─── */
+.meal-picker-sheet {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #FFFFFF;
+  border-radius: 32rpx 32rpx 0 0;
+  padding: 40rpx 40rpx;
+  padding-bottom: calc(40rpx + env(safe-area-inset-bottom));
+  z-index: 151;
+  animation: slideUp 200ms ease-out;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+.meal-picker-sheet__title {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #1A1A2E;
+  text-align: center;
+  margin-bottom: 12rpx;
+}
+
+.meal-picker-sheet__subtitle {
+  font-size: 26rpx;
+  color: #6B6B8D;
+  text-align: center;
+  margin-bottom: 40rpx;
+}
+
+.meal-picker-sheet__options {
+  display: flex;
+  justify-content: center;
+  gap: 40rpx;
+  margin-bottom: 40rpx;
+}
+
+.meal-picker-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12rpx;
+  padding: 32rpx 40rpx;
+  background: #F5F0E8;
+  border-radius: 24rpx;
+  min-width: 160rpx;
+}
+
+.meal-picker-option:active {
+  background: #EDE8DE;
+  transform: scale(0.96);
+}
+
+.meal-picker-option__emoji { font-size: 64rpx; }
+.meal-picker-option__name { font-size: 30rpx; font-weight: 600; color: #1A1A2E; }
+
+.meal-picker-sheet__cancel {
+  text-align: center;
+  font-size: 28rpx;
+  color: #6B6B8D;
+  padding: 24rpx;
+}
+
+.meal-picker-sheet__cancel:active { color: #3B3B5C; }
+
 /* ─── 金额键盘 bottom-sheet ─── */
 .amount-sheet {
   position: fixed;

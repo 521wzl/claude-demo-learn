@@ -2,7 +2,7 @@ const cloud = require('wx-server-sdk')
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 
 const CATEGORIES = {
-  早餐: ['早餐', '早点', '早饭店'],
+  早餐: ['早餐', '早点', '早饭店', '早饭', '早午饭'],
   午餐: ['午餐', '午饭', '中饭'],
   晚餐: ['晚餐', '晚饭'],
   夜宵: ['夜宵', '宵夜'],
@@ -11,16 +11,16 @@ const CATEGORIES = {
   肉类: ['猪肉', '牛肉', '羊肉', '鸡肉', '肉类', '熟食'],
   海鲜: ['鱼', '虾', '蟹', '海鲜', '贝类', '海带'],
   粮油调味品: ['油', '盐', '酱', '醋', '调料', '调味品', '酱油', '料酒'],
-  咖啡茶饮: ['咖啡', '奶茶', '茶饮', '果汁', '水果茶', '喜茶', '奈雪'],
+  咖啡茶饮: ['咖啡', '奶茶', '茶饮', '果汁', '水果茶', '喜茶', '奈雪', '饮料'],
   烟酒茶叶: ['烟', '香烟', '酒', '白酒', '啤酒', '红酒', '茶叶', '茶具'],
-  日常交通: ['公交', '地铁', '出租', '打车', '滴滴', '日常出行'],
+  日常交通: ['公交', '地铁', '出租', '打车', '滴滴', '日常出行', '出行', '坐车'],
   远行交通: ['高铁', '火车', '飞机', '动车', '长途汽车'],
   养车: ['充电', '加油', '保养', '保险', '停车', '维修', '年检', '洗车', '违章'],
   电器数码: ['手机', '电脑', '相机', '家电', '数码', '平板', '笔记本'],
-  春装: ['春装', '春季衣服', '外套', '风衣', '毛衣'],
-  夏装: ['夏装', '夏季衣服', '短袖', '裙子', 'T恤'],
-  秋装: ['秋装', '秋季衣服', '长袖', '卫衣', '外套'],
-  冬装: ['冬装', '冬季衣服', '羽绒服', '大衣', '棉衣'],
+  春装: ['春装', '春季衣服', '外套', '风衣', '毛衣', '春衣'],
+  夏装: ['夏装', '夏季衣服', '短袖', '裙子', 'T恤', '夏衣'],
+  秋装: ['秋装', '秋季衣服', '长袖', '卫衣', '外套', '秋衣'],
+  冬装: ['冬装', '冬季衣服', '羽绒服', '大衣', '棉衣', '冬衣'],
   美妆: ['化妆品', '护肤', '香水', '美妆', '美容', '口红', '粉底'],
   医美: ['医美', '整形', '整容', '美白', '玻尿酸', '瘦脸针', '水光针'],
   美发: ['理发', '剪发', '染发', '烫发', '造型', '美发', '洗头', '吹发', 'Tony'],
@@ -49,6 +49,18 @@ function classify(text) {
   let maxScore = 0
   let bestCategory = '其他'
   let bestType = 'expense'
+
+  // 提取金额
+  const amountMatch = text.match(/(\d+(?:\.\d+)?)\s*[元块圆]?/)
+  const amount = amountMatch ? parseFloat(amountMatch[1]) : null
+
+  // 模糊餐饮词检测
+  const ambiguousMealWords = ['吃饭', '用餐', '进餐', '就餐', '用餐费', '餐费']
+  const hasAmbiguousMeal = ambiguousMealWords.some(w => text.includes(w))
+  const hasBreakfast = ['早餐', '早点', '早饭店', '早饭', '早午饭'].some(w => text.includes(w))
+  const hasLunch = ['午餐', '午饭', '中饭'].some(w => text.includes(w))
+  const hasDinner = ['晚餐', '晚饭'].some(w => text.includes(w))
+  const needMealTimeConfirm = hasAmbiguousMeal && !hasBreakfast && !hasLunch && !hasDinner
 
   // 检查收入关键词
   for (const kw of INCOME_KEYWORDS) {
@@ -80,7 +92,7 @@ function classify(text) {
     confidence = Math.min(confidence + 0.1, 1.0)
   }
 
-  return { category: bestCategory, type: bestType, confidence }
+  return { category: bestCategory, type: bestType, confidence, amount, needMealTimeConfirm }
 }
 
 exports.main = async (event, context) => {
